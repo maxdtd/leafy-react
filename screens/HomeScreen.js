@@ -13,6 +13,8 @@ import { MonoText } from '../components/StyledText';
 
 export default class HomeScreen extends React.Component {
   
+  camera = null;
+
   static navigationOptions = {
     header: null,
   };
@@ -36,15 +38,17 @@ export default class HomeScreen extends React.Component {
     } else {
       return (
         <View style={styles.container}>
-          <Camera style={{ flex: 1 }} type = {this.state.type}>
-            <View
-              style={{
-                flex:1,
-                backgroundColor: 'transparent',
-                flexDirection: 'row',
-              }}>
-            </View>
-          </Camera>
+          <View style={styles.cameraContainer} >
+            <Camera style={{ flex: 1, aspectRatio: 7/9 }} type={this.state.type} ref={(ref)=>{this.camera}}>
+              <View
+                style={{
+                  flex:1,
+                  backgroundColor: 'transparent',
+                  flexDirection: 'row',
+                }}>
+              </View>
+            </Camera>
+          </View>
           {/* Bottom Label */}
           <View style={styles.tabBarInfoContainer}>
             <Text style={styles.tabBarInfoText}>Dandelion -  97,5%</Text>
@@ -59,6 +63,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     //backgroundColor: '#fff',
+  },
+  cameraContainer:{
+    flex: 1,
   },
   codeHighlightText: {
     color: 'rgba(96,100,109, 0.8)',
