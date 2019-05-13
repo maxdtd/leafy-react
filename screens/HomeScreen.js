@@ -4,12 +4,16 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
-  Button,
+  Dimensions
 } from 'react-native';
 import { Camera, Permissions } from 'expo';
-
+import { Col, Row, Grid } from 'react-native-easy-grid';
+import { Ionicons } from '@expo/vector-icons';
 import { MonoText } from '../components/StyledText';
+
+const { width: winWidth, height: winHeight } = Dimensions.get('window');
 
 export default class HomeScreen extends React.Component {
   
@@ -37,45 +41,55 @@ export default class HomeScreen extends React.Component {
       return <Text>No permission to use camera!</Text>
     } else {
       return (
-        <View style={styles.container}>
-          <View style={styles.cameraContainer} >
-            <Camera style={{ flex: 1, aspectRatio: 7/9 }} type={this.state.type} ref={(ref)=>{this.camera}}>
-              <View
-                style={{
-                  flex:1,
-                  backgroundColor: 'transparent',
-                  flexDirection: 'row',
-                }}>
-              </View>
-            </Camera>
+        <React.Fragment>
+          {/* CAMERA VIEW */}
+          <View>
+            <Camera style={styles.cameraPreview} type={this.state.type} ref={(ref)=>{this.camera}}/>
           </View>
-          {/* Bottom Label */}
-          <View style={styles.tabBarInfoContainer}>
-            <Text style={styles.tabBarInfoText}>Dandelion -  97,5%</Text>
+          {/* INTERACTION BAR */}
+          <Grid style={styles.bottomToolbar}>
+            <Row>
+              <Col style={styles.alignCenter}>
+              {/* SPACER */}
+              </Col>
+              <Col size={2} style={styles.alignCenter}>
+                <TouchableWithoutFeedback>
+                  <View style={styles.captureBtn}>
+                  </View>
+                </TouchableWithoutFeedback>
+              </Col>
+              <Col style={styles.alignCenter}>
+                <TouchableOpacity>
+                  <Ionicons name="md-image" color="white" size={30} />
+                </TouchableOpacity>
+              </Col>
+            </Row>
+          </Grid>
+          {/* CLASSIFICATION BAR */}
+          <View style={styles.classificationBar}>
+            <Text style={styles.classificationBarText}>##predictions## -  ##percentage##</Text>
           </View>
-        </View>
+        </React.Fragment>
       );
     }  
   } 
 }
 
+
+{/* STYLES */}
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    //backgroundColor: '#fff',
+  cameraPreview:{
+    aspectRatio: 7/9,
+    height: winHeight,
+    width: winWidth,
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    right: 0,
+    bottom: 0,
   },
-  cameraContainer:{
-    flex: 1,
-  },
-  codeHighlightText: {
-    color: 'rgba(96,100,109, 0.8)',
-  },
-  codeHighlightContainer: {
-    backgroundColor: 'rgba(0,0,0,0.05)',
-    borderRadius: 3,
-    paddingHorizontal: 4,
-  },
-  tabBarInfoContainer: {
+  classificationBar:{
+    backgroundColor: '#AAA',
     position: 'absolute',
     bottom: 0,
     left: 0,
@@ -95,9 +109,39 @@ const styles = StyleSheet.create({
     backgroundColor: '#fbfbfb',
     paddingVertical: 20,
   },
-  tabBarInfoText: {
+  classificationBarText: {
     fontSize: 17,
     color: 'rgba(96,100,109, 1)',
     textAlign: 'center',
   },
+  alignCenter: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+},
+bottomToolbar: {
+    width: winWidth,
+    position: 'absolute',
+    height: 100,
+    bottom: 60,
+},
+captureBtn: {
+    width: 60,
+    height: 60,
+    borderWidth: 2,
+    borderRadius: 60,
+    borderColor: "#FFFFFF",
+},
+captureBtnActive: {
+    width: 80,
+    height: 80,
+},
+captureBtnInternal: {
+    width: 76,
+    height: 76,
+    borderWidth: 2,
+    borderRadius: 76,
+    backgroundColor: "red",
+    borderColor: "transparent",
+},
 });
