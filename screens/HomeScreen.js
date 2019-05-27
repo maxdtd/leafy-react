@@ -1,4 +1,5 @@
 import React from 'react';
+import NavigationEvents from 'react-navigation';
 import {
   Platform,
   StyleSheet,
@@ -31,15 +32,23 @@ export default class HomeScreen extends React.Component {
   async componentDidMount() {
     const { status } = await Permissions.askAsync(Permissions.CAMERA);
     this.setState({ hasCameraPermission: status === 'granted' });
+    const { navigation } = this.props;
+    navigation.addListener('didFocus', () =>
+      this.setState({ focusedScreen: true })
+    );
+    navigation.addListener('didBlur', () =>
+      this.setState({ focusedScreen: false })
+    );
   }
   
+  // HOME SCREEN VISUALS
   render() {
-    const { hasCameraPermission } = this.state;
-    if (hasCameraPermission === null) {
+    const { hasCameraPermission, focusedScreen } = this.state;
+    if (hasCameraPermission === null || !focusedScreen) {
       return <View/>;
-    } else if (hasCameraPermission === false) {
+    } else if (hasCameraPermission === false && focusedScreen) {
       return <Text>No permission to use camera!</Text>
-    } else {
+    } else if (hasCameraPermission && focusedScreen) {
       return (
         <React.Fragment>
           {/* CAMERA VIEW */}
@@ -67,12 +76,18 @@ export default class HomeScreen extends React.Component {
           </Grid>
           {/* CLASSIFICATION BAR */}
           <View style={styles.classificationBar}>
-            <Text style={styles.classificationBarText}>##predictions## -  ##percentage##</Text>
+            <Text style={styles.classificationBarText}> Dandelion -  97,5% </Text>
           </View>
         </React.Fragment>
       );
     }  
   } 
+}
+
+takePicture = async () => {
+  if (this.camera) {
+    let pic = await this.camera.takePictureAsync(0.5, false, false);
+  }
 }
 
 
