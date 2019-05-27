@@ -17,6 +17,7 @@ import { MonoText } from '../components/StyledText';
 const { width: winWidth, height: winHeight } = Dimensions.get('window');
 
 export default class HomeScreen extends React.Component {
+
   
   camera = null;
 
@@ -27,6 +28,7 @@ export default class HomeScreen extends React.Component {
   state = {
     hasCameraPermission: null,
     type: Camera.Constants.Type.back,
+    classification : "Dandelion - 95%"
   };
 
   async componentDidMount() {
@@ -38,9 +40,20 @@ export default class HomeScreen extends React.Component {
     );
     navigation.addListener('didBlur', () =>
       this.setState({ focusedScreen: false })
-    );
+    ); 
   }
   
+  takePicture = async () => {
+    if (this.camera) {
+      this.setState({classification: 'CHANGED!'});
+      let pic = await this.camera.takePictureAsync(0.5, false, false);
+    } else {
+      this.setState({classification: 'CHANGED!'});
+    }
+  }
+
+
+
   // HOME SCREEN VISUALS
   render() {
     const { hasCameraPermission, focusedScreen } = this.state;
@@ -53,7 +66,7 @@ export default class HomeScreen extends React.Component {
         <React.Fragment>
           {/* CAMERA VIEW */}
           <View>
-            <Camera style={styles.cameraPreview} type={this.state.type} ref={(ref)=>{this.camera}}/>
+            <Camera style={styles.cameraPreview} type={this.state.type} ref={ref => { this.camera = ref; }}/>
           </View>
           {/* INTERACTION BAR */}
           <Grid style={styles.bottomToolbar}>
@@ -61,12 +74,14 @@ export default class HomeScreen extends React.Component {
               <Col style={styles.alignCenter}>
               {/* SPACER */}
               </Col>
+              {/* CAPTURE BUTTON*/}
               <Col size={2} style={styles.alignCenter}>
-                <TouchableWithoutFeedback>
+                <TouchableWithoutFeedback onPress={this.takePicture}>
                   <View style={styles.captureBtn}>
                   </View>
                 </TouchableWithoutFeedback>
               </Col>
+              {/* GALLERY BUTTON */}
               <Col style={styles.alignCenter}>
                 <TouchableOpacity>
                   <Ionicons name="md-image" color="white" size={30} />
@@ -76,20 +91,13 @@ export default class HomeScreen extends React.Component {
           </Grid>
           {/* CLASSIFICATION BAR */}
           <View style={styles.classificationBar}>
-            <Text style={styles.classificationBarText}> Dandelion -  97,5% </Text>
+            <Text style={styles.classificationBarText}> {this.state.classification} </Text>
           </View>
         </React.Fragment>
       );
     }  
   } 
 }
-
-takePicture = async () => {
-  if (this.camera) {
-    let pic = await this.camera.takePictureAsync(0.5, false, false);
-  }
-}
-
 
 {/* STYLES */}
 const styles = StyleSheet.create({
