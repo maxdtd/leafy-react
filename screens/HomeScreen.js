@@ -7,12 +7,12 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
-  Dimensions
+  Dimensions,
 } from 'react-native';
-import { Camera, Permissions } from 'expo';
+import { Camera, Permissions, ImagePicker, FileSystem } from 'expo';
 import { Col, Row, Grid } from 'react-native-easy-grid';
 import { Ionicons } from '@expo/vector-icons';
-import { MonoText } from '../components/StyledText';
+//import { MonoText } from '../components/StyledText';
 
 const { width: winWidth, height: winHeight } = Dimensions.get('window');
 
@@ -45,14 +45,28 @@ export default class HomeScreen extends React.Component {
   
   takePicture = async () => {
     if (this.camera) {
-      this.setState({classification: 'CHANGED!'});
+      this.setState({classification: 'TAKING PICTURE!'});
       let pic = await this.camera.takePictureAsync(0.5, false, false);
-    } else {
-      this.setState({classification: 'CHANGED!'});
+      this.setState({classification: 'SAVING PICTURE!'});
+      var fileName = FileSystem.documentDirectory + this.getTimestamp() + '.jpg';
+      await FileSystem.copyAsync(pic.uri,fileName);
+      // process image here
+      // upload image here
+      this.setState({classification: 'WAITING FOR SERVER RESPONSE!'});
+    } else { 
     }
   }
 
-
+  getTimestamp = () => {
+    var date = String(new Date().getDate());
+    var month =  String(new Date().getMonth() + 1); //Current Month
+    var year =  String(new Date().getFullYear()); //Current Year
+    var hours =  String(new Date().getHours()); //Current Hours
+    var min =  String(new Date().getMinutes()); //Current Minutes
+    var sec =  String(new Date().getSeconds()); //Current Seconds
+    var res = year + month + date + hours + min + sec;
+    return res;
+  }
 
   // HOME SCREEN VISUALS
   render() {
