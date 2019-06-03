@@ -42,19 +42,63 @@ export default class HomeScreen extends React.Component {
       this.setState({ focusedScreen: false })
     ); 
   }
-  
+
   takePicture = async () => {
     if (this.camera) {
       this.setState({classification: 'TAKING PICTURE!'});
-      let pic = await this.camera.takePictureAsync(0.5, false, false);
+      //let pic = await this.camera.takePictureAsync(0.5, false, false);
       this.setState({classification: 'SAVING PICTURE!'});
-      var fileName = FileSystem.documentDirectory + this.getTimestamp() + '.jpg';
-      await FileSystem.copyAsync(pic.uri,fileName);
+      //var fileName = FileSystem.documentDirectory + this.getTimestamp() + '.jpg';
+      //await FileSystem.copyAsync(pic.uri,fileName);
       // process image here
       // upload image here
+      //let formData = new FormData();
+      //formData.append('img', {uri: fileName, name: 'img.jpg', type: "image/jpg"});
+      /*let options = {
+        method: "POST",
+        body: formData,
+        headers: {
+          Accept: "application/json",
+          ContentType: "multipart/form-data"
+        }
+      };
+      fetch("", options); */
+      let data = {
+        "file": FileSystem.documentDirectory,
+      };
+      fetch("https://silly-gecko-9.localtunnel.me/post", {
+        body: JSON.stringify(data),
+        headers: {
+          'content-type': 'application/json'
+        },
+        method: "POST"
+      });
       this.setState({classification: 'WAITING FOR SERVER RESPONSE!'});
     } else { 
     }
+  }
+
+  pickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync();
+    if (result.cancelled) {
+      return;
+    }
+    let localUri = result.uri;
+    let filename = localUri.split('/').pop();
+    let match = /\.(\w+)$/.exec(filename);
+    let type = match ? 'image/${match[1]}' : 'image';
+    let formData = new FormData();
+    let data = {
+      "file": result.uri
+    };
+    formData.append('photo', {uri: localUri, name: "photo", type: "jpg"});
+    return await fetch("https://silly-gecko-9.localtunnel.me/post", {
+      method: "POST",
+      body: JSON.stringify(data),
+      header: {
+        'contentType': 'multipart/form-data',
+      },
+    });
   }
 
   getTimestamp = () => {
@@ -97,8 +141,8 @@ export default class HomeScreen extends React.Component {
               </Col>
               {/* GALLERY BUTTON */}
               <Col style={styles.alignCenter}>
-                <TouchableOpacity>
-                  <Ionicons name="md-image" color="white" size={30} />
+                <TouchableOpacity onPress={this.pickImage}>
+                  <Ionicons name={Platform.OS === 'ios' ? 'ios-share' : 'md-image'} color="white" size={30} />
                 </TouchableOpacity>
               </Col>
             </Row>

@@ -33,7 +33,7 @@ SettingsStack.navigationOptions = {
   tabBarIcon: ({ focused }) => (
     <TabBarIcon
       focused={focused}
-      name={Platform.OS === 'ios' ? 'ios-bookmarks' : 'md-bookmarks'}
+      name={Platform.OS === 'ios' ? 'ios-bookmarks' : 'md-book'}
     />
   ),
 };
