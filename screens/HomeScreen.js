@@ -17,7 +17,6 @@ import { Ionicons } from '@expo/vector-icons';
 const { width: winWidth, height: winHeight } = Dimensions.get('window');
 
 export default class HomeScreen extends React.Component {
-
   
   camera = null;
 
@@ -28,7 +27,8 @@ export default class HomeScreen extends React.Component {
   state = {
     hasCameraPermission: null,
     type: Camera.Constants.Type.back,
-    classification : "Dandelion - 95%"
+    classification : "Dandelion - 95%",
+    photo: null
   };
 
   async componentDidMount() {
@@ -47,32 +47,26 @@ export default class HomeScreen extends React.Component {
     if (this.camera) {
       this.setState({classification: 'TAKING PICTURE!'});
       //let pic = await this.camera.takePictureAsync(0.5, false, false);
+      let photo_uri = "";
+      await this.camera.takePictureAsync({
+        skipProcessing: true}).then((data) => {
+          photo_uri = data.uri;
+        });
       this.setState({classification: 'SAVING PICTURE!'});
-      //var fileName = FileSystem.documentDirectory + this.getTimestamp() + '.jpg';
-      //await FileSystem.copyAsync(pic.uri,fileName);
-      // process image here
-      // upload image here
-      //let formData = new FormData();
-      //formData.append('img', {uri: fileName, name: 'img.jpg', type: "image/jpg"});
-      /*let options = {
+      let formData = new FormData();
+      formData.append('photo', {uri: photo_uri, name: "pflane.jpg", type: "image/jpeg"});
+      await fetch("http://lamp.wlan.hwr-berlin.de:3456/upload", {
         method: "POST",
         body: formData,
-        headers: {
-          Accept: "application/json",
-          ContentType: "multipart/form-data"
-        }
-      };
-      fetch("", options); */
-      let data = {
-        "file": FileSystem.documentDirectory,
-      };
-      fetch("https://silly-gecko-9.localtunnel.me/post", {
-        body: JSON.stringify(data),
-        headers: {
-          'content-type': 'application/json'
+        header: {
+          'contentType': 'multipart/form-data',
         },
-        method: "POST"
-      });
+      }).then((response) => {
+        response.json().then((data) => {
+          var resp_data = String(data.result[0].className).toUpperCase() + ' - ' + String(data.result[0].probability * 100) + '%';
+          this.setState({classification: resp_data});
+        })
+      })
       this.setState({classification: 'WAITING FOR SERVER RESPONSE!'});
     } else { 
     }
@@ -85,16 +79,13 @@ export default class HomeScreen extends React.Component {
     }
     let localUri = result.uri;
     let filename = localUri.split('/').pop();
-    let match = /\.(\w+)$/.exec(filename);
-    let type = match ? 'image/${match[1]}' : 'image';
+    let filetype = "image/jpeg";
     let formData = new FormData();
-    let data = {
-      "file": result.uri
-    };
-    formData.append('photo', {uri: localUri, name: "photo", type: "jpg"});
-    return await fetch("https://silly-gecko-9.localtunnel.me/post", {
+    formData.append('photo', {uri: localUri, name: filename, type: filetype});
+    console.log(formData);
+    await fetch("http://lamp.wlan.hwr-berlin.de:3456/upload", {
       method: "POST",
-      body: JSON.stringify(data),
+      body: formData,
       header: {
         'contentType': 'multipart/form-data',
       },
@@ -160,14 +151,13 @@ export default class HomeScreen extends React.Component {
 {/* STYLES */}
 const styles = StyleSheet.create({
   cameraPreview:{
-    aspectRatio: 7/9,
-    height: winHeight,
+    height: winWidth,
     width: winWidth,
     position: 'absolute',
     left: 0,
-    top: 0,
-    right: 0,
-    bottom: 0,
+    top: winHeight*0.15,
+    //right: 0,
+    //bottom: 0,
   },
   classificationBar:{
     backgroundColor: '#AAA',
@@ -202,6 +192,7 @@ const styles = StyleSheet.create({
 },
 bottomToolbar: {
     width: winWidth,
+    backgroundColor: '#333333',
     position: 'absolute',
     height: 100,
     bottom: 60,
