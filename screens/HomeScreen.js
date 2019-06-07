@@ -8,8 +8,9 @@ import {
   TouchableWithoutFeedback,
   View,
   Dimensions,
+  Image
 } from 'react-native';
-import { Camera, Permissions, ImagePicker, FileSystem } from 'expo';
+import { Camera, Permissions, ImagePicker, ImageManipulator } from 'expo';
 import { Col, Row, Grid } from 'react-native-easy-grid';
 import { Ionicons } from '@expo/vector-icons';
 //import { MonoText } from '../components/StyledText';
@@ -27,7 +28,7 @@ export default class HomeScreen extends React.Component {
   state = {
     hasCameraPermission: null,
     type: Camera.Constants.Type.back,
-    classification : "Dandelion - 95%",
+    classification : "READY FOR CAPTURING!",
     photo: null
   };
 
@@ -45,16 +46,16 @@ export default class HomeScreen extends React.Component {
 
   takePicture = async () => {
     if (this.camera) {
-      this.setState({classification: 'TAKING PICTURE!'});
+      this.setState({classification: 'CAPTURING PICTURE!'});
       //let pic = await this.camera.takePictureAsync(0.5, false, false);
       let photo_uri = "";
       await this.camera.takePictureAsync({
-        skipProcessing: true}).then((data) => {
+        quality: 0.1 }).then((data) => {
           photo_uri = data.uri;
         });
-      this.setState({classification: 'SAVING PICTURE!'});
+      this.setState({classification: 'WAITING FOR SERVER RESPONSE!'});
       let formData = new FormData();
-      formData.append('photo', {uri: photo_uri, name: "pflane.jpg", type: "image/jpeg"});
+      formData.append('photo', {uri: photo_uri, name: "img.jpg", type: "image/jpeg"});
       await fetch("http://lamp.wlan.hwr-berlin.de:3456/upload", {
         method: "POST",
         body: formData,
@@ -67,7 +68,6 @@ export default class HomeScreen extends React.Component {
           this.setState({classification: resp_data});
         })
       })
-      this.setState({classification: 'WAITING FOR SERVER RESPONSE!'});
     } else { 
     }
   }
@@ -92,17 +92,6 @@ export default class HomeScreen extends React.Component {
     });
   }
 
-  getTimestamp = () => {
-    var date = String(new Date().getDate());
-    var month =  String(new Date().getMonth() + 1); //Current Month
-    var year =  String(new Date().getFullYear()); //Current Year
-    var hours =  String(new Date().getHours()); //Current Hours
-    var min =  String(new Date().getMinutes()); //Current Minutes
-    var sec =  String(new Date().getSeconds()); //Current Seconds
-    var res = year + month + date + hours + min + sec;
-    return res;
-  }
-
   // HOME SCREEN VISUALS
   render() {
     const { hasCameraPermission, focusedScreen } = this.state;
@@ -113,6 +102,18 @@ export default class HomeScreen extends React.Component {
     } else if (hasCameraPermission && focusedScreen) {
       return (
         <React.Fragment>
+          <Grid style={styles.topContainer}>
+            <Row>
+              <Col>
+                <Image source={require('../assets/images/leafylogo.png')} style={{width: 80, height: 80}}/>
+              </Col>
+              <Col style={styles.alignCenter}>
+                <Text style={{fontSize: 30}}>Leafy</Text>
+              </Col>
+              <Col style={styles.alignCenter}>
+              </Col>
+            </Row>
+          </Grid>
           {/* CAMERA VIEW */}
           <View>
             <Camera style={styles.cameraPreview} type={this.state.type} ref={ref => { this.camera = ref; }}/>
@@ -151,13 +152,24 @@ export default class HomeScreen extends React.Component {
 {/* STYLES */}
 const styles = StyleSheet.create({
   cameraPreview:{
-    height: winWidth,
+    height: winWidth*1.33,
     width: winWidth,
     position: 'absolute',
     left: 0,
-    top: winHeight*0.15,
-    //right: 0,
-    //bottom: 0,
+    top: winHeight*0.04 + 100,
+  },
+  topContainer: {
+    height: 100,
+    width: winWidth,
+    position: 'absolute',
+    left: 0,
+    top: winHeight*0.04,
+    paddingLeft: 10,
+    paddingTop: 10,
+    paddingBottom: 10
+  },
+  topText:{
+    fontSize: 30,
   },
   classificationBar:{
     backgroundColor: '#AAA',
@@ -192,7 +204,7 @@ const styles = StyleSheet.create({
 },
 bottomToolbar: {
     width: winWidth,
-    backgroundColor: '#333333',
+    //backgroundColor: '#555555',
     position: 'absolute',
     height: 100,
     bottom: 60,
