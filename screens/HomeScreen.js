@@ -10,7 +10,7 @@ import {
   Dimensions,
   Image
 } from 'react-native';
-import { Camera, Permissions, ImagePicker, ImageManipulator } from 'expo';
+import { Camera, Permissions, ImagePicker, ImageManipulator} from 'expo';
 import { Col, Row, Grid } from 'react-native-easy-grid';
 import { Ionicons } from '@expo/vector-icons';
 //import { MonoText } from '../components/StyledText';
@@ -50,12 +50,18 @@ export default class HomeScreen extends React.Component {
       //let pic = await this.camera.takePictureAsync(0.5, false, false);
       let photo_uri = "";
       await this.camera.takePictureAsync({
-        quality: 0.1 }).then((data) => {
+        quality: 0.1 }
+      ).then((data) => {
           photo_uri = data.uri;
-        });
+      });
+      let res = await ImageManipulator.manipulateAsync(
+        photo_uri,
+        [{ resize : { width : 500 }}],
+        { compress : 1, format : 'jpeg' }
+      );
       this.setState({classification: 'WAITING FOR SERVER RESPONSE!'});
       let formData = new FormData();
-      formData.append('photo', {uri: photo_uri, name: "img.jpg", type: "image/jpeg"});
+      formData.append('photo', {uri: res.uri, name: "img.jpg", type: "image/jpeg"});
       await fetch("http://lamp.wlan.hwr-berlin.de:3456/upload", {
         method: "POST",
         body: formData,
@@ -77,7 +83,12 @@ export default class HomeScreen extends React.Component {
     if (result.cancelled) {
       return;
     }
-    let localUri = result.uri;
+    let resized = await ImageManipulator.manipulateAsync(
+      result.uri,
+      [{ resize : { width : 500 }}],
+      { compress : 1, format : 'jpeg' }
+    );
+    let localUri = resized.uri;
     let filename = localUri.split('/').pop();
     let filetype = "image/jpeg";
     let formData = new FormData();
@@ -89,6 +100,11 @@ export default class HomeScreen extends React.Component {
       header: {
         'contentType': 'multipart/form-data',
       },
+    }).then((response) => {
+      response.json().then((data) => {
+        var resp_data = String(data.result[0].className).toUpperCase() + ' - ' + String(data.result[0].probability * 100) + '%';
+        this.setState({classification: resp_data});
+      })
     });
   }
 
