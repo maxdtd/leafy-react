@@ -47,7 +47,6 @@ export default class HomeScreen extends React.Component {
   takePicture = async () => {
     if (this.camera) {
       this.setState({classification: 'CAPTURING PICTURE!'});
-      //let pic = await this.camera.takePictureAsync(0.5, false, false);
       let photo_uri = "";
       await this.camera.takePictureAsync({
         quality: 0.1 }
@@ -73,8 +72,11 @@ export default class HomeScreen extends React.Component {
           var resp_data = String(data.result[0].className).toUpperCase() + ' - ' + String(data.result[0].probability * 100) + '%';
           this.setState({classification: resp_data});
         })
-      })
+      }).catch((error) => {
+        this.setState({classification: "Error fetching response!"});
+      });
     } else { 
+      this.setState({classification: "CAMERA ERROR!"});
     }
   }
 
@@ -91,9 +93,9 @@ export default class HomeScreen extends React.Component {
     let localUri = resized.uri;
     let filename = localUri.split('/').pop();
     let filetype = "image/jpeg";
+    this.setState({classification: 'WAITING FOR SERVER RESPONSE!'});
     let formData = new FormData();
     formData.append('photo', {uri: localUri, name: filename, type: filetype});
-    console.log(formData);
     await fetch("http://lamp.wlan.hwr-berlin.de:3456/upload", {
       method: "POST",
       body: formData,
@@ -104,7 +106,9 @@ export default class HomeScreen extends React.Component {
       response.json().then((data) => {
         var resp_data = String(data.result[0].className).toUpperCase() + ' - ' + String(data.result[0].probability * 100) + '%';
         this.setState({classification: resp_data});
-      })
+      });
+    }).catch((error) => {
+      this.setState({classification: "Error fetching response!"});
     });
   }
 
